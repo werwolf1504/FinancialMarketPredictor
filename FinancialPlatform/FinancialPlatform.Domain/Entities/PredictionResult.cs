@@ -4,7 +4,7 @@ using System.Text;
 
 namespace FinancialPlatform.Domain.Entities;
 
-class PredictionResult
+public class PredictionResult
 {
     public int Id { get; set; }
     public string Ticker { get; set; }
