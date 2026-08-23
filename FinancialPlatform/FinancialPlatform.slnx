@@ -2,5 +2,6 @@
   <Project Path="FinancialPlatform.Api/FinancialPlatform.Api.csproj" Id="503dd019-2790-498a-ac28-b84824d9f227" />
   <Project Path="FinancialPlatform.Application/FinancialPlatform.Application.csproj" />
   <Project Path="FinancialPlatform.Domain/FinancialPlatform.Domain.csproj" Id="f4314369-a9db-47a3-b55f-c74845c57e34" />
+  <Project Path="FinancialPlatform.Gateway/FinancialPlatform.Gateway.csproj" Id="014de14e-6c31-4111-9b26-6112263c1955" />
   <Project Path="FinancialPlatform.Infrastructure/FinancialPlatform.Infrastructure.csproj" Id="91c1612c-ab37-42cb-b86f-5f441285e744" />
 </Solution>
