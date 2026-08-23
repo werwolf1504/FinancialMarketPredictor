@@ -32,6 +32,7 @@ builder.Services.Configure<ExternalApiSettings>(
 
 // Register the FinnhubClient as a service
 builder.Services.AddHttpClient<IMarketDataProvider,FinnhubClient>();
+builder.Services.AddHttpClient<IMarketDataProvider, AlphaVantageClient>();
 
 var app = builder.Build();
 
