@@ -15,4 +15,8 @@
     <ProjectReference Include="..\FinancialPlatform.Infrastructure\FinancialPlatform.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+
 </Project>

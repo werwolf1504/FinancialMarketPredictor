@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+    #1. PostgreSQL
+    postgres-db:
+        image: postgres:15-alpine
+        container_name: financial_postgres
+        ports:
+            - "5432:5432"
+        environment:
+            - POSTGRES_USER=postgresadmin
+            - POSTGRES_PASSWORD=Adm1nP@ssw0rd
+            - POSTGRES_DB=FinancialPlatformDb
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        restart: unless-stopped
+        
+    #2. MongoDB
+    mongodb:
+        image: mongo:latest
+        container_name: financial_mongodb
+        ports:
+            - "27017:27017"
+        environment:
+            - MONGO_INITDB_ROOR_USERNAME=mongoadmin
+            - MONGO_INITDB_ROOR_PASSWORD=M0ngoAdm1n
+        volumes:
+            - mongodb_data:/data/db
+        restart: unless-stopped
+        
+    #3. Redis Cache
+    redis-cache:
+        image: redis:alpine
+        container_name: financial_redis
+        ports: 
+            - "6379:6379"
+        volumes:
+            - redis_data:/data
+        restart: unless-stopped
+        
+# volumes
+volumes:
+    postgres_data:
+    mongodb_data:
+    redis_data:
