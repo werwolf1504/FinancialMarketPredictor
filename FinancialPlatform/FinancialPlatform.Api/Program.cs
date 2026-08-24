@@ -8,6 +8,7 @@ using MongoDB.Driver;
 using FinancialPlatform.Application.Interfaces;
 using Polly;
 using Microsoft.Extensions.Caching.Distributed;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,6 +59,20 @@ builder.Services.AddTransient<IMarketDataProvider>(sp =>
     var distributedCache = sp.GetRequiredService<IDistributedCache>();
 
     return new CachedMarketDataProvider(fallbackProvider, distributedCache);
+});
+
+builder.Services.AddMassTransit(config =>
+{
+    config.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(builder.Configuration["RabbitMq:Host"], "/", host => 
+        {
+            host.Username(builder.Configuration["RabbitMq:login"]);
+            host.Password(builder.Configuration["RabbitMq:password"]);
+        });
+
+        cfg.ConfigureEndpoints(context);
+    });
 });
 
 var app = builder.Build();

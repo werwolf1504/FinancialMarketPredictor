@@ -38,8 +38,20 @@ services:
             - redis_data:/data
         restart: unless-stopped
         
+    #4. Rabbit MQ
+    rabitmq:
+        image: rabbitmq:3-management-alpine
+        container_name: financial_rabbitmq
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+        volumes: 
+            - rabbitmq_data:/var/lib/rabbitmq
+        restart: unless-stopped
+        
 # volumes
 volumes:
     postgres_data:
     mongodb_data:
     redis_data:
+    rabbitmq_data:
