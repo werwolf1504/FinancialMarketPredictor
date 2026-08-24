@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 using MongoDB.Driver;
 using FinancialPlatform.Application.Interfaces;
+using Polly;
+using Microsoft.Extensions.Caching.Distributed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +16,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+//Redis
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("RedisConnection");
+});
 
 //PostgreSQL Database Context Configuration
 builder.Services.AddDbContext<FinancialDbContext>(options =>
@@ -31,8 +39,26 @@ builder.Services.Configure<ExternalApiSettings>(
     builder.Configuration.GetSection("ExternalApiSettings"));
 
 // Register the FinnhubClient as a service
-builder.Services.AddHttpClient<IMarketDataProvider,FinnhubClient>();
-builder.Services.AddHttpClient<IMarketDataProvider, AlphaVantageClient>();
+builder.Services.AddHttpClient<FinnhubClient>().
+    AddTransientHttpErrorPolicy(policyBuilder => policyBuilder.WaitAndRetryAsync(
+        3, configurePolicy => TimeSpan.FromSeconds(Math.Pow(2, configurePolicy))));
+
+builder.Services.AddHttpClient<AlphaVantageClient>().
+    AddTransientHttpErrorPolicy(policyBuilder => policyBuilder.WaitAndRetryAsync(
+        3, configurePolicy => TimeSpan.FromSeconds(Math.Pow(2, configurePolicy))));
+
+builder.Services.AddTransient<IMarketDataProvider>(sp =>
+{
+    var finnhubClient = sp.GetRequiredService<FinnhubClient>();
+    var alphaVantageClient = sp.GetRequiredService<AlphaVantageClient>();
+    var logger = sp.GetRequiredService<ILogger<FallbackDataProvider>>();
+
+    var fallbackProvider = new FallbackDataProvider(finnhubClient, alphaVantageClient, logger);
+
+    var distributedCache = sp.GetRequiredService<IDistributedCache>();
+
+    return new CachedMarketDataProvider(fallbackProvider, distributedCache);
+});
 
 var app = builder.Build();
 
