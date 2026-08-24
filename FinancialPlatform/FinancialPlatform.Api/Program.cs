@@ -1,14 +1,20 @@
+using FinancialPlatform.Application.Commands;
+using FinancialPlatform.Application.Interfaces;
+using FinancialPlatform.Application.Queries;
+using FinancialPlatform.Infrastructure.Clients;
 using FinancialPlatform.Infrastructure.Data;
 using FinancialPlatform.Infrastructure.Settings;
-using FinancialPlatform.Infrastructure.Clients;
+
+using MassTransit;
+
+using MediatR;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 
 using MongoDB.Driver;
-using FinancialPlatform.Application.Interfaces;
+
 using Polly;
-using Microsoft.Extensions.Caching.Distributed;
-using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +40,8 @@ builder.Services.Configure<MongoDbSettings>(
 
 string mongoDbConnectionString = builder.Configuration.GetSection("MongoDbSettings:ConnectionString").Value;
 builder.Services.AddSingleton<IMongoClient> (new MongoClient(mongoDbConnectionString));
+
+builder.Services.AddSingleton<IMarketDataRepository, MongoMarketDataRepository>();
 
 // External API Settings Configuration
 builder.Services.Configure<ExternalApiSettings>(
@@ -74,6 +82,9 @@ builder.Services.AddMassTransit(config =>
         cfg.ConfigureEndpoints(context);
     });
 });
+
+// Add MediatR
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(SaveMarketDataCommand).Assembly));
 
 var app = builder.Build();
 

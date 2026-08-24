@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
+using FinancialPlatform.Application.Interfaces;
 using FinancialPlatform.Domain.Entities;
 using FinancialPlatform.Infrastructure.Settings;
 using Microsoft.Extensions.Options;
@@ -9,7 +10,7 @@ using MongoDB.Driver;
 
 namespace FinancialPlatform.Infrastructure.Data;
 
-public class MongoMarketDataRepository
+public class MongoMarketDataRepository : IMarketDataRepository
 {
     private readonly IMongoCollection<MarketTick> _marketDataCollection;
     public MongoMarketDataRepository(IMongoClient mongoClient, IOptions<MongoDbSettings> mongoDbSettings)
@@ -23,5 +24,10 @@ public class MongoMarketDataRepository
 
         var indexModel = new CreateIndexModel<MarketTick>(indexKeysDefinition);
         _marketDataCollection.Indexes.CreateOne(indexModel);
+    }
+
+    public async Task InsertASync(MarketTick marketTick)
+    {
+        await _marketDataCollection.InsertOneAsync(marketTick);
     }
 }
