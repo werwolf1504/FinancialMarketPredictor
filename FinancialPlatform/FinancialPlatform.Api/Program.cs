@@ -1,9 +1,13 @@
+using FinancialPlatform.Application.Behaviors;
 using FinancialPlatform.Application.Commands;
 using FinancialPlatform.Application.Interfaces;
 using FinancialPlatform.Application.Queries;
+using FinancialPlatform.Application.Validators;
 using FinancialPlatform.Infrastructure.Clients;
 using FinancialPlatform.Infrastructure.Data;
 using FinancialPlatform.Infrastructure.Settings;
+
+using FluentValidation;
 
 using MassTransit;
 
@@ -84,7 +88,13 @@ builder.Services.AddMassTransit(config =>
 });
 
 // Add MediatR
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(SaveMarketDataCommand).Assembly));
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(SaveMarketDataCommand).Assembly);
+    cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+});
+builder.Services.AddValidatorsFromAssembly(typeof(SaveMarketDataCommandValidator).Assembly);
 
 var app = builder.Build();
 
