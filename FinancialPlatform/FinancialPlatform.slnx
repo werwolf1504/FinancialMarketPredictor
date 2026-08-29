@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="FinancialPlatform.Api/FinancialPlatform.Api.csproj" Id="503dd019-2790-498a-ac28-b84824d9f227" />
+  <Project Path="FinancialPlatform.Application.Tests/FinancialPlatform.Application.Tests.csproj" Id="878a6ff7-f65a-4987-b7aa-75dccee52cb6" />
   <Project Path="FinancialPlatform.Application/FinancialPlatform.Application.csproj" />
   <Project Path="FinancialPlatform.Contracts/FinancialPlatform.Contracts.csproj" Id="2718b03f-cde2-40ca-bb9f-4119c5fb06ca" />
   <Project Path="FinancialPlatform.Domain/FinancialPlatform.Domain.csproj" Id="f4314369-a9db-47a3-b55f-c74845c57e34" />
