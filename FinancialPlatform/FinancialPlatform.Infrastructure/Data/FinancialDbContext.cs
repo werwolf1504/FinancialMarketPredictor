@@ -12,7 +12,7 @@ namespace FinancialPlatform.Infrastructure.Data
         public FinancialDbContext(DbContextOptions<FinancialDbContext> options) : base(options) { }
 
         public DbSet<StockAsset> StockAssets { get; set; }
-        public DbSet<MarketTick> MarketTicks { get; set; }
+        //public DbSet<MarketTick> MarketTicks { get; set; }
         public DbSet<PredictionResult> PredictionResults { get; set; }
 
     }

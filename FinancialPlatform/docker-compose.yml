@@ -19,13 +19,14 @@ services:
     mongodb:
         image: mongo:latest
         container_name: financial_mongodb
+        command: mongod --auth
         ports:
-            - "27017:27017"
+            - "27018:27017"
         environment:
             - MONGO_INITDB_ROOR_USERNAME=mongoadmin
             - MONGO_INITDB_ROOR_PASSWORD=M0ngoAdm1n
         volumes:
-            - mongodb_data:/data/db
+            - mongodb_data_v2:/data/db
         restart: unless-stopped
         
     #3. Redis Cache
@@ -52,6 +53,6 @@ services:
 # volumes
 volumes:
     postgres_data:
-    mongodb_data:
+    mongodb_data_v2:
     redis_data:
     rabbitmq_data:

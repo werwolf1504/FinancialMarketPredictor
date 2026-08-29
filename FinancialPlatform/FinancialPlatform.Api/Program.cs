@@ -3,6 +3,7 @@ using FinancialPlatform.Application.Commands;
 using FinancialPlatform.Application.Interfaces;
 using FinancialPlatform.Application.Queries;
 using FinancialPlatform.Application.Validators;
+using FinancialPlatform.Infrastructure.BackgroundServices;
 using FinancialPlatform.Infrastructure.Clients;
 using FinancialPlatform.Infrastructure.Data;
 using FinancialPlatform.Infrastructure.Settings;
@@ -43,6 +44,7 @@ builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDbSettings"));
 
 string mongoDbConnectionString = builder.Configuration.GetSection("MongoDbSettings:ConnectionString").Value;
+
 builder.Services.AddSingleton<IMongoClient> (new MongoClient(mongoDbConnectionString));
 
 builder.Services.AddSingleton<IMarketDataRepository, MongoMarketDataRepository>();
@@ -95,6 +97,9 @@ builder.Services.AddMediatR(cfg =>
     cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 builder.Services.AddValidatorsFromAssembly(typeof(SaveMarketDataCommandValidator).Assembly);
+
+// Add background service for market data collection
+builder.Services.AddHostedService<MarketDataCollectorService>();
 
 var app = builder.Build();
 

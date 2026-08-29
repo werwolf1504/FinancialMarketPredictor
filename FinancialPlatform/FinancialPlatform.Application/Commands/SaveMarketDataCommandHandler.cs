@@ -7,6 +7,8 @@ using FinancialPlatform.Domain.Entities;
 
 using MediatR;
 
+using MongoDB.Bson;
+
 namespace FinancialPlatform.Application.Commands;
 
 public record SaveMarketDataCommand(MarketTick MarketTick) : IRequest;
@@ -22,6 +24,8 @@ public class SaveMarketDataCommandHandler : IRequestHandler<SaveMarketDataComman
 
     public async Task Handle(SaveMarketDataCommand request, CancellationToken cancellationToken)
     {
+        request.MarketTick.Id = ObjectId.GenerateNewId().ToString();
+
         await _marketDataRepository.InsertASync(request.MarketTick);
     }
 }
