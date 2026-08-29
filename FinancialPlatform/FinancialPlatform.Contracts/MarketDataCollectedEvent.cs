@@ -1,3 +1,3 @@
 ﻿namespace FinancialPlatform.Contracts;
 
-public record MarketDataCollectedEvent(string Ticker, int Price, DateTime TimeStamp);
+public record MarketDataCollectedEvent(string Ticker, decimal Price, DateTime TimeStamp);
