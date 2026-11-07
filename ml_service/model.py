@@ -1,0 +1,28 @@
+import torch
+import torch.nn as nn
+
+class LSTMPricePredictor (nn.Module):
+    def __init__(self, input_size: int, hidden_size: int, num_layers: int, dropout: float=0.3):
+        super(LSTMPricePredictor).__init__()
+
+        self.hidden_size = hidden_size
+        self.num_layers = num_layers
+
+        self.lstm = nn.LSTM(
+            input_size=input_size,
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            batch_first=True,
+            dropout=dropout if num_layers > 1 else 0
+        )
+
+        self.linear = nn.Linear(num_layers, 1)
+
+    def forward(self, x):
+        lstm_out = self.lstm(x)
+
+        last_time_stamp = lstm_out[:, -1, :]
+
+        predictions = self.linear(last_time_stamp)
+
+        return predictions
