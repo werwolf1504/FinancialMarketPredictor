@@ -3,7 +3,7 @@ import torch.nn as nn
 
 class LSTMPricePredictor (nn.Module):
     def __init__(self, input_size: int, hidden_size: int, num_layers: int, dropout: float=0.3):
-        super(LSTMPricePredictor).__init__()
+        super(LSTMPricePredictor, self).__init__()
 
         self.hidden_size = hidden_size
         self.num_layers = num_layers
@@ -16,10 +16,10 @@ class LSTMPricePredictor (nn.Module):
             dropout=dropout if num_layers > 1 else 0
         )
 
-        self.linear = nn.Linear(num_layers, 1)
+        self.linear = nn.Linear(hidden_size, 1)
 
     def forward(self, x):
-        lstm_out = self.lstm(x)
+        lstm_out, _ = self.lstm(x)
 
         last_time_stamp = lstm_out[:, -1, :]
 
