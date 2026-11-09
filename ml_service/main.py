@@ -5,9 +5,21 @@ from fastapi import FastAPI
 from pydantic import AliasChoices, BaseModel, Field
 import asyncio
 from contextlib import asynccontextmanager
+from model import LSTMPricePredictor
+from data_processor import MarketDataProcessor
+from collections import defaultdict
+import torch
 
 RABBITMQ_URL = "amqp://guest:guest@localhost:5672/"
 QUEUE_NAME = "python_market_data_queue"
+
+#Global variables ML
+model = None
+preprocessor = MarketDataProcessor()
+
+#Dictionary
+history_buffer = defaultdict(list)
+SEQUENCE_LENGTH = 10
 
 class MarketDataCollectedEvent(BaseModel):
     ticker: str = Field(validation_alias=AliasChoices('ticker', 'Ticker'))
@@ -35,11 +47,42 @@ async def process_message(message: aio_pika.abc.AbstractIncomingMessage):
 
         event_model = MarketDataCollectedEvent(**event)
 
+        ticker = event_model.ticker
+        price = event_model.price
+
+        history_buffer[ticker].append(price)
+
+        if len(history_buffer[ticker]) > SEQUENCE_LENGTH+15 :
+            history_buffer[ticker].pop(0)
+
         print(f"Got that data {event_model.ticker}: price {event_model.price} timespan {event_model.timestamp}")
+
+        if len(history_buffer[ticker]) >= SEQUENCE_LENGTH+15 :
+            processed_data = preprocessor.process(history_buffer[ticker])
+
+            recent_window = processed_data.tail(SEQUENCE_LENGTH).values
+
+            input_tensor = torch.FloatTensor(recent_window).unsqueeze(0)
+
+            with torch.no_grad():
+                prediction = model(input_tensor)
+
+            prediction_value = prediction.item()
+
+            print(f"Prediction for {ticker}: {prediction_value}.4f")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    global model
+    print("Loading model...")
+
+    model = LSTMPricePredictor(input_size=3, hidden_size=64, num_layers=2)
+
+    model.load_state_dict(torch.load('model_weights.pth', weights_only=True))
+
+    model.eval()
+
     connection = await start_consumer()
 
     yield
