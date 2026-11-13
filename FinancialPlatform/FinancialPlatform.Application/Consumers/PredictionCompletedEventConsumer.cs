@@ -20,6 +20,9 @@ public class PredictionCompletedEventConsumer : IConsumer<PredictionCompletedEve
 
     public async Task Consume(ConsumeContext<PredictionCompletedEvent> context)
     {
+        var msg = context.Message;
+        Console.WriteLine($"[DEBUG] Отримано з RabbitMQ: Ticker='{msg.Ticker}', Price={msg.PredictedPrice}, Time='{msg.Timestamp}'");
+
         await _predictionNotifier.BroadcastPredictionAsync(context.Message);
         Console.WriteLine($"[RabbitMQ] Prediction for ticker {context.Message.Ticker} completed and sent to notification service.");
     }

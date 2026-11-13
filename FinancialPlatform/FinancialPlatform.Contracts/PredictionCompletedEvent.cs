@@ -1,7 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text.Json.Serialization;
 
 namespace FinancialPlatform.Contracts;
 
-public record PredictionCompletedEvent(string Ticker, decimal PredictedPrice, DateTime TimeStamp);
+public class PredictionCompletedEvent
+{
+    [JsonPropertyName("ticker")]
+    public string Ticker { get; set; } = string.Empty;
+
+    [JsonPropertyName("price")]
+    public decimal PredictedPrice { get; set; }
+
+    [JsonPropertyName("timestamp")]
+    public DateTime Timestamp { get; set; }
+}

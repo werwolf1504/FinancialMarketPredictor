@@ -93,14 +93,12 @@ builder.Services.AddMassTransit(x =>
         // 2. Налаштовуємо чергу для консьюмера
         cfg.ReceiveEndpoint("prediction_notifications_queue", e =>
         {
-            // Додаємо цей рядок, щоб MassTransit розумів "сирий" JSON від Python
             e.ClearSerialization();
-            e.UseRawJsonSerializer();
-
+            e.UseRawJsonSerializer(RawSerializerOptions.AnyMessageType);
             e.ConfigureConsumer<PredictionCompletedEventConsumer>(context);
         });
+        // Рядок cfg.ConfigureEndpoints(context); тут більше НЕ потрібен!
 
-        cfg.ConfigureEndpoints(context);
     });
 });
 
@@ -120,6 +118,17 @@ builder.Services.AddHostedService<MarketDataCollectorService>();
 builder.Services.AddSignalR();
 builder.Services.AddTransient<IPredictionNotifier, SignalRPredictionNotifier>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", builder =>
+    {
+        builder.WithOrigins("http://localhost:5173/")
+               .AllowAnyHeader()
+               .AllowAnyMethod()
+               .AllowCredentials();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -128,7 +137,9 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
+
+app.UseCors("FrontendPolicy");
 
 app.UseAuthorization();
 

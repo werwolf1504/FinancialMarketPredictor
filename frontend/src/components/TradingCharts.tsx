@@ -32,13 +32,29 @@ export function TradingChart({ data }: ChartProps) {
             lineWidth: 2,
         });
 
-        // Автоматично конвертуємо рядки (ISO 8601) у Unix-таймстампи в секундах, якщо це необхідно
-        const formattedData = data.map(item => ({
-            time: (typeof item.time === 'string'
+        // 1. Переводимо час у секунди
+        const rawData = data.map(item => ({
+            time: typeof item.time === 'string'
                 ? Math.floor(new Date(item.time).getTime() / 1000)
-                : item.time) as Time,
-            value: item.value,
+                : Number(item.time),
+            value: Number(item.value),
         }));
+
+        // 2. Прибираємо дублікати секунд (залишається найсвіжіша точка за цю секунду)
+        const uniqueSeconds = new Map<number, number>();
+        for (const point of rawData) {
+            if (!isNaN(point.time) && !isNaN(point.value)) {
+                uniqueSeconds.set(point.time, point.value);
+            }
+        }
+
+        // 3. Сортуємо строго за зростанням часу
+        const formattedData = Array.from(uniqueSeconds.entries())
+            .sort((a, b) => a[0] - b[0])
+            .map(([time, value]) => ({
+                time: time as Time,
+                value,
+            }));
 
         lineSeries.setData(formattedData as any);
         chartRef.current = chart;
