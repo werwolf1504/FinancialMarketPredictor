@@ -1,5 +1,7 @@
+using FinancialPlatform.Api.Hubs;
 using FinancialPlatform.Application.Behaviors;
 using FinancialPlatform.Application.Commands;
+using FinancialPlatform.Application.Consumers;
 using FinancialPlatform.Application.Interfaces;
 using FinancialPlatform.Application.Queries;
 using FinancialPlatform.Application.Validators;
@@ -75,14 +77,27 @@ builder.Services.AddTransient<IMarketDataProvider>(sp =>
     return new CachedMarketDataProvider(fallbackProvider, distributedCache);
 });
 
-builder.Services.AddMassTransit(config =>
+builder.Services.AddMassTransit(x =>
 {
-    config.UsingRabbitMq((context, cfg) =>
+    // 1. Реєструємо наш новий консьюмер ТУТ
+    x.AddConsumer<PredictionCompletedEventConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
     {
-        cfg.Host(builder.Configuration["RabbitMq:Host"], "/", host => 
+        // Базові налаштування підключення (з Дня 8)
+        cfg.Host(builder.Configuration["RabbitMq:Host"], "/", h => {
+            h.Username(builder.Configuration["RabbitMq:Username"]);
+            h.Password(builder.Configuration["RabbitMq:Password"]);
+        });
+
+        // 2. Налаштовуємо чергу для консьюмера
+        cfg.ReceiveEndpoint("prediction_notifications_queue", e =>
         {
-            host.Username(builder.Configuration["RabbitMq:login"]);
-            host.Password(builder.Configuration["RabbitMq:password"]);
+            // Додаємо цей рядок, щоб MassTransit розумів "сирий" JSON від Python
+            e.ClearSerialization();
+            e.UseRawJsonSerializer();
+
+            e.ConfigureConsumer<PredictionCompletedEventConsumer>(context);
         });
 
         cfg.ConfigureEndpoints(context);
@@ -101,6 +116,10 @@ builder.Services.AddValidatorsFromAssembly(typeof(SaveMarketDataCommandValidator
 // Add background service for market data collection
 builder.Services.AddHostedService<MarketDataCollectorService>();
 
+// Add PredictionNotifier
+builder.Services.AddSignalR();
+builder.Services.AddTransient<IPredictionNotifier, SignalRPredictionNotifier>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -114,5 +133,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<PredictionHub>("/hubs/predictions");
 
 app.Run();

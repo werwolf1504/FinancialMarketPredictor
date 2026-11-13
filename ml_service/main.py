@@ -89,7 +89,7 @@ async def process_message(message: aio_pika.abc.AbstractIncomingMessage):
             }
 
             msg_body = json.dumps(prediction_data).encode("utf-8")
-            msg = aio_pika.Message(body=msg_body)
+            msg = aio_pika.Message(body=msg_body, content_type="application/json")
 
             if prediction_exchange:
                 await prediction_exchange.publish(msg, routing_key="")
